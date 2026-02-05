@@ -34,8 +34,9 @@ dependencies = []
 richprint = "richprint.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/dishather/richprint"
-Repository = "https://github.com/dishather/richprint"
+Homepage = "https://github.com/RogueValleyInformationSecurity/richprint-pe"
+Repository = "https://github.com/RogueValleyInformationSecurity/richprint-pe"
+Upstream = "https://github.com/dishather/richprint"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/richprint"]
