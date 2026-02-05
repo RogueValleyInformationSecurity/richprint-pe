@@ -11,7 +11,7 @@ pip install richprint-pe
 Or run directly without installing using [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uvx richprint-pe notepad.exe
+uvx --from richprint-pe richprint notepad.exe
 ```
 
 ## What is the Rich Header?
