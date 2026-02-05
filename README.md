@@ -8,6 +8,12 @@ A Python tool to decode and print compiler information stored in the Rich Header
 pip install richprint-pe
 ```
 
+Or run directly without installing using [uv](https://docs.astral.sh/uv/):
+
+```bash
+uvx richprint-pe notepad.exe
+```
+
 ## What is the Rich Header?
 
 The Rich Header is a section of binary data created by Microsoft's linker, located between the DOS stub and PE header in Windows executables. It contains a list of compiler/tool IDs (@comp.id) used to build the executable, allowing identification of exact compiler versions down to build numbers.

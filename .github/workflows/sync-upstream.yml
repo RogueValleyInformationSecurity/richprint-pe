@@ -1,0 +1,66 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch upstream comp_id.txt
+        run: |
+          curl -sL https://raw.githubusercontent.com/dishather/richprint/master/comp_id.txt -o upstream_comp_id.txt
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if diff -q upstream_comp_id.txt src/richprint/data/comp_id.txt > /dev/null 2>&1; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in comp_id.txt"
+          fi
+
+      - name: Update comp_id.txt
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          cp upstream_comp_id.txt src/richprint/data/comp_id.txt
+
+      - name: Bump version
+        if: steps.diff.outputs.changed == 'true'
+        id: version
+        run: |
+          # Extract current version
+          CURRENT=$(grep -Po 'version = "\K[^"]+' pyproject.toml)
+          # Bump patch version
+          IFS='.' read -ra PARTS <<< "$CURRENT"
+          NEW_VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2] + 1))"
+          # Update files
+          sed -i "s/version = \"$CURRENT\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          sed -i "s/__version__ = \"$CURRENT\"/__version__ = \"$NEW_VERSION\"/" src/richprint/__init__.py
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Bumped: $CURRENT -> $NEW_VERSION"
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync comp_id.txt from upstream (v${{ steps.version.outputs.version }})"
+          git push
+
+      - name: Create release
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "Synced comp_id.txt from [upstream](https://github.com/dishather/richprint)"
