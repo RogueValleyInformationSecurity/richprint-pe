@@ -27,7 +27,7 @@ from .exceptions import (
     InvalidRichHeaderError,
 )
 
-__version__ = "1.0.22"
+__version__ = "1.0.23"
 
 __all__ = [
     # Main API
